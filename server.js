@@ -1,10 +1,9 @@
 const express = require("express");
 const connectDB = require("./db");
-const User = require("./usermodel");
+const User = require("./userModel"); 
 const PORT = 3011;
 const app = express();
 app.use(express.json());
-
 
 const searchUsers = async (criteria) => {
   try {
@@ -52,7 +51,6 @@ app.get("/users", async (req, res) => {
 
         let query = {};
         
-        
         if (name) query.name = new RegExp(name, 'i');
         if (email) query.email = new RegExp(email, 'i');
         if (school) query['schools.name'] = new RegExp(school, 'i');
@@ -78,7 +76,7 @@ app.put("/user/:id", async (req, res) => {
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
-  });
+});
 
 async function startAPI() {
     try {
