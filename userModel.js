@@ -18,19 +18,19 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
-const school = allHighSchools => ({
+const school = allSchools => ({
   allSchools1: [
-    { name: "walnut HighSchool" },
-    { name: "Reynoldsburg HighSchool" },
-    { name: "preckerington HighSschool" },
-    { name: "eastmoore HighSchool" },
-    { name: "west HighSchool" },
-    { name: "jacksington HighSchool" },
+    { name: "walnut school" },
+    { name: "Reynoldsburg school" },
+    { name: "preckerington school" },
+    { name: "eastmoore school" },
+    { name: "west school" },
+    { name: "jacksington school" },
   ]
 });
 
-const result = HighSchool();
-console.log(result.allHighSchools1);
+const result = school();
+console.log(result.allschools1);
 
 
 const newUser = new User({
