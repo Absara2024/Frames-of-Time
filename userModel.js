@@ -10,13 +10,28 @@ const schoolSchema = new mongoose.Schema({
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true }, 
   email: { type: String, required: true }, 
-  schools: [schoolSchema],
+  schools: {type: String, required:true},
   graduateYear: { type: String, required: true },
   comment: { type: String, required: true },
 
 });
 
 const User = mongoose.model('User', userSchema);
+
+const school = allHighSchools => ({
+  allSchools1: [
+    { name: "walnut HighSchool" },
+    { name: "Reynoldsburg HighSchool" },
+    { name: "preckerington HighSschool" },
+    { name: "eastmoore HighSchool" },
+    { name: "west HighSchool" },
+    { name: "jacksington HighSchool" },
+  ]
+});
+
+const result = HighSchool();
+console.log(result.allHighSchools1);
+
 
 const newUser = new User({
   name: 'isu',
