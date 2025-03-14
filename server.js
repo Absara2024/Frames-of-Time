@@ -7,12 +7,15 @@ const PORT = 3012;
 app.use(express.json());
 app.use(cors());
 
-mongoose.connect('mongodb://localhost:27017/user-registration', {
-  useNewUrlParser: true, 
-  useUnifiedTopology: true, 
+mongoose.connect('mongodb://127.0.0.1:27017/your_database_name', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
 })
-.then(() => console.log('Connected to MongoDB'))
-.catch((err) => console.error('Error connecting to MongoDB', err));
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((error) => {
+    console.error('MongoDB connection error:', error);
+    process.exit(1); 
+  });
 
 const schoolSchema = new mongoose.Schema({
   name: String,
@@ -20,6 +23,7 @@ const schoolSchema = new mongoose.Schema({
 });
 
 const School = mongoose.model('School', schoolSchema);
+
 
 const userSchema = new mongoose.Schema({
   name: String,
@@ -31,17 +35,21 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
+
 app.post('/user', async (req, res) => {
   try {
     const { name, email, schoolName, graduateYear, comment } = req.body;
 
     
+    if (!name || !email || !schoolName || !graduateYear || !comment) {
+      return res.status(400).send({ message: 'All fields are required' });
+    }
+
     const school = await School.findOne({ name: schoolName });
 
     if (!school) {
       return res.status(404).send({ message: 'School not found' });
     }
-
 
     const newUser = new User({
       name,
@@ -55,11 +63,11 @@ app.post('/user', async (req, res) => {
 
     res.status(201).send({ message: 'User registered successfully' });
   } catch (error) {
-
     console.error('Error registering user:', error);
     res.status(500).send({ message: 'Error registering user', error: error.message });
   }
 });
+
 
 app.get('/users', async (req, res) => {
   try {
