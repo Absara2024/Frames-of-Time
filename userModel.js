@@ -29,6 +29,9 @@ const school = allSchools => ({
   ]
 });
 
+const graduates = allgraduates => ({
+  allgraduates
+})
 const result = school();
 console.log(result.allschools1);
 
