@@ -1,92 +1,76 @@
-const express = require("express");
-const connectDB = require("./db");
-const User = require("./userModel"); 
-const PORT = 3012;
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
 const app = express();
+const PORT = 3012;
+
 app.use(express.json());
+app.use(cors());
 
-const searchUsers = async (criteria) => {
+mongoose.connect('mongodb://localhost:27017/user-registration', {
+  useNewUrlParser: true, 
+  useUnifiedTopology: true, 
+})
+.then(() => console.log('Connected to MongoDB'))
+.catch((err) => console.error('Error connecting to MongoDB', err));
+
+const schoolSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+});
+
+const School = mongoose.model('School', schoolSchema);
+
+const userSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  graduateYear: String,
+  comment: String,
+  schools: [{ type: mongoose.Schema.Types.ObjectId, ref: 'School' }],
+});
+
+const User = mongoose.model('User', userSchema);
+
+app.post('/user', async (req, res) => {
   try {
-    let query = {};
+    const { name, email, schoolName, graduateYear, comment } = req.body;
 
-    if (criteria.name) query.name = new RegExp(criteria.name, 'i');
-    if (criteria.email) query.email = new RegExp(criteria.email, 'i');
-    if (criteria.school) query['schools.name'] = new RegExp(criteria.school, 'i');
-    if (criteria.graduateYear) query.graduateYear = criteria.graduateYear;
+    
+    const school = await School.findOne({ name: schoolName });
 
-    const users = await User.find(query);
-    return users;
-  } catch (err) {
-    console.error('Error searching users:', err);
-    throw err;
+    if (!school) {
+      return res.status(404).send({ message: 'School not found' });
+    }
+
+
+    const newUser = new User({
+      name,
+      email,
+      graduateYear,
+      comment,
+      schools: [school._id],
+    });
+
+    await newUser.save();
+
+    res.status(201).send({ message: 'User registered successfully' });
+  } catch (error) {
+
+    console.error('Error registering user:', error);
+    res.status(500).send({ message: 'Error registering user', error: error.message });
   }
-};
-
-app.post("/user", async (req, res) => {
-    try {
-        const { name, email, school, graduateYear, comment } = req.body;
-
-        const existingUser = await User.findOne({ name });
-        const existingUserByEmail = await User.findOne({ email });
-
-        if (existingUser) {
-            return res.status(400).send({ message: "Username already exists" });
-        }
-        if (existingUserByEmail) {
-            return res.status(400).send({ message: "Email already exists" });
-        }
-
-        const newUser = new User({ name, email, school, graduateYear, comment });
-        await newUser.save();
-        
-        res.status(201).send({ message: "User registered successfully" });
-    } catch (error) {
-        res.status(500).send({ error: error.message });
-    }
 });
 
-app.get("/users", async (req, res) => {
-    try {
-        const { name, email, school, graduateYear } = req.query;
-
-        let query = {};
-        
-        if (name) query.name = new RegExp(name, 'i');
-        if (email) query.email = new RegExp(email, 'i');
-        if (school) query['schools.name'] = new RegExp(school, 'i');
-        if (graduateYear) query.graduateYear = graduateYear;
-
-        const users = await User.find(query);  
-        res.status(200).send(users);  
-    } catch (error) {
-        res.status(500).send({ error: error.message });
-    }
+app.get('/users', async (req, res) => {
+  try {
+    const users = await User.find().populate('schools');
+    res.status(200).send(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).send({ message: 'Error fetching users', error: error.message });
+  }
 });
 
-app.put("/user/:id", async (req, res) => {
-    try {
-      const { username, password } = req.body;
-      const updatedUser = await User.findByIdAndUpdate(
-        req.params.id,
-        { username, password },
-        { new: true }
-      );
-  
-      res.status(200).json(updatedUser);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
-
-async function startAPI() {
-    try {
-        await connectDB();
-        app.listen(PORT, () => {
-            console.log(`Express server running at http://localhost:${PORT}`);
-        });
-    } catch (error) {
-        console.log(error);
-    }
-}
-
-startAPI();

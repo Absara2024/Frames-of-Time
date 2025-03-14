@@ -1,82 +1,123 @@
 const mongoose = require('mongoose');
 
 const schoolSchema = new mongoose.Schema({
-  name: { type: String, required: true }, 
-  graduates: [{ name: String, year: String }], 
-  comments: [{ text: String, timestamp: { type: Date, default: Date.now } }], 
-  images: [{ url: String, description: String }] 
+  name: { type: String, required: true },
+  email: { type: String, required: true }, 
+  graduates: [{ name: String, year: String }],
+  comments: [{ text: String, timestamp: { type: Date, default: Date.now } }],
+  images: [{ url: String, description: String }]
 });
 
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: true }, 
-  email: { type: String, required: true }, 
-  schools: {type: String, required:true},
-  graduateYear: { type: String, required: true },
-  comment: { type: String, required: true },
+const School = mongoose.model('School', schoolSchema);
 
+
+const schools = [
+  {
+    name: "School A",
+    email: "contact@schoola.com",
+    graduates: [
+      { name: 'Zebib', year: '2020' },
+      { name: 'Alex', year: '2021' }
+    ],
+    images: [
+      { url: "https://example.com/school-a-image.jpg", description: "School A Image" }
+    ],
+    comments: [
+      { text: 'Great school!' }
+    ]
+  },
+  {
+    name: "School B",
+    email: "info@schoolb.com",
+    graduates: [
+      { name: 'Abdul', year: '2021' },
+      { name: 'James', year: '2022' }
+    ],
+    images: [
+      { url: "https://example.com/school-b-image.jpg", description: "School B Image" }
+    ],
+    comments: [
+      { text: 'Nice atmosphere.' }
+    ]
+  },
+  {
+    name: "School C",
+    email: "hello@schoolc.com",
+    graduates: [
+      { name: 'Absara', year: '2022' },
+      { name: 'Filmon', year: '2023' }
+    ],
+    images: [
+      { url: "https://example.com/school-c-image.jpg", description: "School C Image" }
+    ],
+    comments: [
+      { text: 'Had a great time here!' }
+    ]
+  }
+];
+
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  schools: [{ type: mongoose.Schema.Types.ObjectId, ref: 'School' }],
+  graduateYear: { type: String, required: true },
+  comment: { type: String, required: true }
 });
 
 const User = mongoose.model('User', userSchema);
 
-const school = allSchools => ({
-  allSchools1: [
-    { name: "walnut school" },
-    { name: "Reynoldsburg school" },
-    { name: "preckerington school" },
-    { name: "eastmoore school" },
-    { name: "west school" },
-    { name: "jacksington school" },
-  ]
-});
-
-const graduates = allgraduates => ({
-  allgraduates
-})
-const result = school();
-console.log(result.allschools1);
-
-
-const newUser = new User({
-  name: 'isu',
-  email: 'absara_2021@yahoo.com',
-  graduateYear: '1996',
-  comment: 'Hello friends',
-  schools: [
-    {
-      name: 'Keih Bahri Secondary High School',
-      graduates: [{ name: 'Absara', year: '1996' }],
-      comments: [{ text: 'Great memories!', timestamp: new Date() }],
-      images: [
-        { url: 'http://example.com/image1.jpg', description: 'Main building of Keih Bahri' },
-        { url: 'http://example.com/image2.jpg', description: 'Graduation ceremony photo' }
-      ]
+const saveSchools = async () => {
+  try {
+    for (let schoolData of schools) {
+      const school = new School(schoolData);
+      await school.save();
     }
-  ]
-});
+    console.log('Schools saved successfully');
+  } catch (err) {
+    console.error('Error saving schools:', err);
+  }
+};
 
-newUser.save()
-  .then(() => console.log('User and associated schools saved successfully'))
-  .catch(err => console.error('Error saving user:', err));
 
-// fetch('http://localhost:3009/your-endpoint', {
-//   method: 'POST',
-//   headers: {
-//     'Content-Type': 'application/json',
-//   },
-//   body: JSON.stringify({
-//     name: 'Absara',
-//     email: 'absara_2021@yahoo.com',
-//     school: 'Keih Bahri Secondary High School',
-//     graduateYear: '1996',
-//     comment: 'Hello friends',
-//   }),
-// })
-//   .then(response => response.json())
-//   .then(data => console.log(data))
-//   .catch(error => console.error('Error:', error));
+const saveUser = async () => {
+  try {
+    const schoolA = await School.findOne({ name: 'School A' });
+    if (schoolA) {
+      const newUser = new User({
+        name: 'Absara',
+        email: 'absara_2021@yahoo.com',
+        graduateYear: '1996',
+        comment: 'Hello friends',
+        schools: [schoolA._id]
+      });
 
-// newUser.save()
-//   .then(() => console.log('User saved successfully'))
-//   .catch(err => console.error('Error saving user:', err));
+      await newUser.save();
+      console.log('User and associated schools saved successfully');
+    } else {
+      console.log('School A not found');
+    }
+  } catch (err) {
+    console.error('Error saving user:', err);
+  }
+};
 
-module.exports = User;
+
+const findUserWithSchools = async () => {
+  try {
+    const user = await User.findOne({ name: 'Absara' }).populate('schools');
+    console.log(user);
+  } catch (err) {
+    console.error('Error finding user with schools:', err);
+  }
+};
+
+const schoolDetails = {
+  names: schools.map(school => school.name),
+  graduateYears: schools.flatMap(school => school.graduates.map(graduate => graduate.year)),
+  emails: schools.map(school => school.email),
+  images: schools.flatMap(school => school.images.map(image => image.url))
+};
+
+console.log(schoolDetails);
+
+module.exports = { User, saveSchools, saveUser, findUserWithSchools };
