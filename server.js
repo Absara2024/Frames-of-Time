@@ -7,7 +7,7 @@ const PORT = 3012;
 app.use(express.json());
 app.use(cors());
 
-mongoose.connect('mongodb://localhost/Frames of Time')
+mongoose.connect('mongodb://127.0.0.1:27017/Frames of Time')
   .then(() => console.log('Connected to MongoDB'))
   .catch((error) => {
     console.error('MongoDB connection error:', error);
@@ -21,7 +21,6 @@ const schoolSchema = new mongoose.Schema({
 
 const School = mongoose.model('School', schoolSchema);
 
-
 const userSchema = new mongoose.Schema({
   name: String,
   email: String,
@@ -32,18 +31,15 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
-
 app.post('/user', async (req, res) => {
   try {
     const { name, email, schoolName, graduateYear, comment } = req.body;
 
-    
     if (!name || !email || !schoolName || !graduateYear || !comment) {
       return res.status(400).send({ message: 'All fields are required' });
     }
 
     const school = await School.findOne({ name: schoolName });
-
     if (!school) {
       return res.status(404).send({ message: 'School not found' });
     }
@@ -64,7 +60,6 @@ app.post('/user', async (req, res) => {
     res.status(500).send({ message: 'Error registering user', error: error.message });
   }
 });
-
 
 app.get('/users', async (req, res) => {
   try {
