@@ -1,18 +1,14 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
+const mongoose = require('mongoose');
 const app = express();
+const connectDB = require("./db"); 
 const PORT = 3012;
+
+connectDB(); 
 
 app.use(express.json());
 app.use(cors());
-
-mongoose.connect('mongodb://localhost/Frames of Time')
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((error) => {
-    console.error('MongoDB connection error:', error);
-    process.exit(1); 
-  });
 
 const schoolSchema = new mongoose.Schema({
   name: String,
