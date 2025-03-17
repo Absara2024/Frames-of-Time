@@ -10,51 +10,21 @@ const schoolSchema = new mongoose.Schema({
 
 const School = mongoose.model('School', schoolSchema);
 
-
-const schools = [
-  {
-    name: "School A",
-    email: "contact@schoola.com",
-    graduates: [
-      { name: 'Zebib', year: '2020' },
-      { name: 'Alex', year: '2021' }
-    ],
-    images: [
-      { url: "https://example.com/school-a-image.jpg", description: "School A Image" }
-    ],
-    comments: [
-      { text: 'Great school!' }
-    ]
-  },
-  {
-    name: "School B",
-    email: "info@schoolb.com",
-    graduates: [
-      { name: 'Abdul', year: '2021' },
-      { name: 'James', year: '2022' }
-    ],
-    images: [
-      { url: "https://example.com/school-b-image.jpg", description: "School B Image" }
-    ],
-    comments: [
-      { text: 'Nice atmosphere.' }
-    ]
-  },
-  {
-    name: "School C",
-    email: "hello@schoolc.com",
-    graduates: [
-      { name: 'Absara', year: '2022' },
-      { name: 'Filmon', year: '2023' }
-    ],
-    images: [
-      { url: "https://example.com/school-c-image.jpg", description: "School C Image" }
-    ],
-    comments: [
-      { text: 'Had a great time here!' }
-    ]
-  }
-];
+const newSchool = new School({
+  name: 'Keih Bahri Secondary High School',
+  graduates: [
+    { name: 'Absara', year: '1996' },
+    { name: 'Zebib', year: '1997' }
+  ],
+  comments: [
+    { text: 'Great memories!', timestamp: new Date('1996-06-01') },
+    { text: 'Amazing teachers!', timestamp: new Date('1997-06-01') }
+  ],
+  images: [
+    { url: 'http://example.com/image1.jpg', description: 'Main building of Keih Bahri' },
+    { url: 'http://example.com/image2.jpg', description: 'Graduation ceremony photo' }
+  ]
+});
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
