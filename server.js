@@ -3,7 +3,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const app = express();
 const connectDB = require("./db"); 
-const PORT = 3012;
+const PORT = 3025;
 
 connectDB(); 
 
