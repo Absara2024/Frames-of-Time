@@ -3,6 +3,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const app = express();
 const connectDB = require("./db"); 
+const user =require("./userModel");
 const PORT = 3025;
 
 connectDB(); 

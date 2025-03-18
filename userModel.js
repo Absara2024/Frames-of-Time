@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const schoolSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  email: { type: String, required: true }, 
+  email: { type: String, required: true },
   graduates: [{ name: String, year: String }],
   comments: [{ text: String, timestamp: { type: Date, default: Date.now } }],
   images: [{ url: String, description: String }]
@@ -12,6 +12,7 @@ const School = mongoose.model('School', schoolSchema);
 
 const newSchool = new School({
   name: 'Keih Bahri Secondary High School',
+  email: 'contact@keihbahri.edu',
   graduates: [
     { name: 'Absara', year: '1996' },
     { name: 'Zebib', year: '1997' }
@@ -26,6 +27,15 @@ const newSchool = new School({
   ]
 });
 
+const saveNewSchool = async () => {
+  try {
+    await newSchool.save();
+    console.log('New school saved successfully');
+  } catch (err) {
+    console.error('Error saving new school:', err);
+  }
+};
+
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true },
@@ -36,22 +46,22 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
-const saveSchools = async () => {
+const saveSchools = async (schools) => {
   try {
-    for (let schoolData of schools) {
+    const savePromises = schools.map(schoolData => {
       const school = new School(schoolData);
-      await school.save();
-    }
+      return school.save();
+    });
+    await Promise.all(savePromises);
     console.log('Schools saved successfully');
   } catch (err) {
     console.error('Error saving schools:', err);
   }
 };
 
-
 const saveUser = async () => {
   try {
-    const schoolA = await School.findOne({ name: 'School A' });
+    const schoolA = await School.findOne({ name: 'Keih Bahri Secondary High School' });
     if (schoolA) {
       const newUser = new User({
         name: 'Absara',
@@ -64,13 +74,12 @@ const saveUser = async () => {
       await newUser.save();
       console.log('User and associated schools saved successfully');
     } else {
-      console.log('School A not found');
+      console.log('Keih Bahri Secondary High School not found');
     }
   } catch (err) {
     console.error('Error saving user:', err);
   }
 };
-
 
 const findUserWithSchools = async () => {
   try {
@@ -81,13 +90,47 @@ const findUserWithSchools = async () => {
   }
 };
 
+const schools = [
+  { name: "Walute School", email: "contact@walute.edu" },
+  { name: "Reynoldsburg School", email: "contact@reynoldsburg.edu" },
+  { name: "Pickerington School", email: "contact@pickerington.edu" },
+  { name: "Eastmoore School", email: "contact@eastmoore.edu" },
+  { name: "West School", email: "contact@west.edu" },
+  { name: "Jackington School", email: "contact@jackington.edu" }
+];
+
+saveSchools(schools);
+
 const schoolDetails = {
   names: schools.map(school => school.name),
-  graduateYears: schools.flatMap(school => school.graduates.map(graduate => graduate.year)),
-  emails: schools.map(school => school.email),
-  images: schools.flatMap(school => school.images.map(image => image.url))
+  emails: schools.map(school => school.email)
 };
 
 console.log(schoolDetails);
 
-module.exports = { User, saveSchools, saveUser, findUserWithSchools };
+const postUserData = async () => {
+  try {
+    const response = await fetch('http://localhost:3025/your-endpoint', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: 'Absara',
+        email: 'absara_2021@yahoo.com',
+        school: 'Keih Bahri Secondary High School',
+        graduateYear: '1996',
+        comment: 'Hello friends'
+      }),
+    });
+
+    const data = await response.json();
+    console.log(data);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
+
+postUserData();
+
+module.exports = { User, School, saveSchools, saveUser, findUserWithSchools, saveNewSchool };
