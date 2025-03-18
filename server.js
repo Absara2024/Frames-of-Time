@@ -1,79 +1,143 @@
-const express = require('express');
-const cors = require('cors');
 const mongoose = require('mongoose');
-const connectDB = require("./db"); 
-const school = require("./models/School");
-const User = require("./models/User"); 
-const PORT = 3025;
-
-connectDB(); 
-
-const app = express();
-
-app.use(express.json());
-app.use(cors());
 
 const schoolSchema = new mongoose.Schema({
-  name: String,
-  email: String,
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  graduateYear: [{ name: String, year: String }],
+  comments: [{ text: String, timestamp: { type: Date, default: Date.now } }],
+  images: [{ url: String, description: String }],
+  schools: [{ type: mongoose.Schema.Types.ObjectId, ref: 'School' }] 
 });
 
-const school = mongoose.model('School', schoolSchema);
+const School = mongoose.model('School', schoolSchema);
+
+const newSchool = new School({
+  name: 'Keih Bahri Secondary High School',
+  email: 'contact@keihbahri.edu',
+  graduateYear: [
+    { name: 'Absara', year: '1996' },
+    { name: 'Zebib', year: '1997' }
+  ],
+  comments: [
+    { text: 'Great memories!', timestamp: new Date('1996-06-01') },
+    { text: 'Amazing teachers!', timestamp: new Date('1997-06-01') }
+  ],
+  images: [
+    { url: 'http://example.com/image1.jpg', description: 'Main building of Keih Bahri' },
+    { url: 'http://example.com/image2.jpg', description: 'Graduation ceremony photo' }
+  ]
+});
+
+const saveNewSchool = async () => {
+  try {
+    await newSchool.save();
+    console.log('New school saved successfully');
+  } catch (err) {
+    console.error('Error saving new school:', err);
+  }
+};
 
 const userSchema = new mongoose.Schema({
-  name: String,
-  email: String,
-  graduateYear: String,
-  comment: String,
+  name: { type: String, required: true },
+  email: { type: String, required: true },
   schools: [{ type: mongoose.Schema.Types.ObjectId, ref: 'School' }],
+  graduateYear: { type: String, required: true },
+  comment: { type: String, required: true }
 });
 
 const User = mongoose.model('User', userSchema);
 
-app.post('/user', async (req, res) => {
+const saveSchools = async (schools) => {
   try {
-    const { name, email, schoolName, graduateYear, comment } = req.body;
+    const savePromises = schools.map(schoolData => {
+      const school = new School(schoolData);
+      return school.save();
+    });
+    await Promise.all(savePromises);
+    console.log('Schools saved successfully');
+  } catch (err) {
+    console.error('Error saving schools:', err);
+  }
+};
 
-    if (!name || !email || !schoolName || !graduateYear || !comment) {
-      return res.status(400).send({ message: 'All fields are required' });
+const saveUser = async () => {
+  try {
+    const schoolA = await School.findOne({ name: 'Keih Bahri Secondary High School' });
+    if (schoolA) {
+      const newUser = new User({
+        name: 'Absara',
+        email: 'absara_2021@yahoo.com',
+        graduateYear: '1996',
+        comment: 'Hello friends',
+        schools: [schoolA._id]
+      });
+
+      await newUser.save();
+      console.log('User and associated schools saved successfully');
+    } else {
+      console.log('Keih Bahri Secondary High School not found');
     }
+  } catch (err) {
+    console.error('Error saving user:', err);
+  }
+};
 
-    const school = await School.findOne({ name: schoolName });
-    if (!school) {
-      return res.status(404).send({ message: 'School not found' });
-    }
+const findUserWithSchools = async () => {
+  try {
+    const user = await User.findOne({ name: 'Absara' }).populate('schools');
+    console.log(user);
+  } catch (err) {
+    console.error('Error finding user with schools:', err);
+  }
+};
 
-    const newUser = new User({
-      name,
-      email,
-      graduateYear,
-      comment,
-      schools: [school._id],
+const schools = [
+  { name: "Walute School", email: "contact@walute.edu" },
+  { name: "Reynoldsburg School", email: "contact@reynoldsburg.edu" },
+  { name: "Pickerington School", email: "contact@pickerington.edu" },
+  { name: "Eastmoore School", email: "contact@eastmoore.edu" },
+  { name: "West School", email: "contact@west.edu" },
+  { name: "Jackington School", email: "contact@jackington.edu" }
+];
+
+saveSchools(schools);
+
+const schoolDetails = {
+  names: schools.map(school => school.name),
+  emails: schools.map(school => school.email)
+};
+
+console.log(schoolDetails);
+
+const fetch = require('node-fetch'); 
+
+const postUserData = async () => {
+  try {
+    const response = await fetch('http://localhost:3025/your-endpoint', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: 'Absara',
+        email: 'absara_2021@yahoo.com',
+        school: 'Keih Bahri Secondary High School',
+        graduateYear: '1996',
+        comment: 'Hello friends'
+      }),
     });
 
-    await newUser.save();
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
 
-    res.status(201).send({ message: 'User registered successfully' });
+    const data = await response.json();
+    console.log(data);
   } catch (error) {
-    console.error('Error registering user:', error);
-    res.status(500).send({ message: 'Error registering user', error: error.message });
+    console.error('Error:', error);
   }
-});
+};
 
-app.get('/users', async (req, res) => {
-  try {
-    const users = await User.find().populate('schools');
-    res.status(200).send(users);
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).send({ message: 'Error fetching users', error: error.message });
-  }
-});
+postUserData();
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
-
-const School = mongoose.models.School || mongoose.model('School', schoolSchema);
-
-module.exports = School;
+module.exports = { User, School, saveSchools, saveUser, findUserWithSchools, saveNewSchool };

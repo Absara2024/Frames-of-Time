@@ -3,9 +3,10 @@ const mongoose = require('mongoose');
 const schoolSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true },
-  graduates: [{ name: String, year: String }],
+  graduateYear: [{ name: String, year: String }],
   comments: [{ text: String, timestamp: { type: Date, default: Date.now } }],
-  images: [{ url: String, description: String }]
+  images: [{ url: String, description: String }],
+  schools: [{ type: mongoose.Schema.Types.ObjectId, ref: 'School' }] 
 });
 
 const School = mongoose.model('School', schoolSchema);
@@ -13,7 +14,7 @@ const School = mongoose.model('School', schoolSchema);
 const newSchool = new School({
   name: 'Keih Bahri Secondary High School',
   email: 'contact@keihbahri.edu',
-  graduates: [
+  graduateYear: [
     { name: 'Absara', year: '1996' },
     { name: 'Zebib', year: '1997' }
   ],
@@ -36,6 +37,17 @@ const saveNewSchool = async () => {
   }
 };
 
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  schools: [{ type: mongoose.Schema.Types.ObjectId, ref: 'School' }],
+  graduateYear: { type: String, required: true },
+  comment: { type: String, required: true }
+});
+
+const User = mongoose.model('User', userSchema);
+
+// Function to save schools
 const saveSchools = async (schools) => {
   try {
     const savePromises = schools.map(schoolData => {
@@ -98,6 +110,9 @@ const schoolDetails = {
 
 console.log(schoolDetails);
 
+const fetch = require('node-fetch'); 
+
+
 const postUserData = async () => {
   try {
     const response = await fetch('http://localhost:3025/your-endpoint', {
@@ -113,6 +128,10 @@ const postUserData = async () => {
         comment: 'Hello friends'
       }),
     });
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
 
     const data = await response.json();
     console.log(data);
