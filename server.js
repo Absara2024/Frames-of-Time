@@ -1,12 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const app = express();
 const connectDB = require("./db"); 
-const user =require("./userModel");
+const school = require("./models/School");
+const User = require("./models/User"); 
 const PORT = 3025;
 
 connectDB(); 
+
+const app = express();
 
 app.use(express.json());
 app.use(cors());
@@ -16,7 +18,7 @@ const schoolSchema = new mongoose.Schema({
   email: String,
 });
 
-const School = mongoose.model('School', schoolSchema);
+const school = mongoose.model('School', schoolSchema);
 
 const userSchema = new mongoose.Schema({
   name: String,
@@ -71,3 +73,7 @@ app.get('/users', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+const School = mongoose.models.School || mongoose.model('School', schoolSchema);
+
+module.exports = School;

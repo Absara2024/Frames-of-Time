@@ -36,16 +36,6 @@ const saveNewSchool = async () => {
   }
 };
 
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true },
-  schools: [{ type: mongoose.Schema.Types.ObjectId, ref: 'School' }],
-  graduateYear: { type: String, required: true },
-  comment: { type: String, required: true }
-});
-
-const User = mongoose.model('User', userSchema);
-
 const saveSchools = async (schools) => {
   try {
     const savePromises = schools.map(schoolData => {
