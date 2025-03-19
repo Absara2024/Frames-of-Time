@@ -1,20 +1,22 @@
-require('dotenv').config();
 const mongoose = require('mongoose');
-const uri = process.env.MONGO_URI
+require('dotenv').config();
+const uri = process.env.MONGO_URI || 'mongodb://localhost:3025/schoolsDB';
 
-const clientOptions = { serverApi: { version: '1', strict: true, deprecationErrors: true } };
-
-async function connectDB() {
-    try {
-        
-        await mongoose.connect(uri, clientOptions);
-        await mongoose.connection.db.admin().command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
-    } catch (error) {
-        
-        console.log(error)
-        await mongoose.disconnect();
+const connectDB = async () => {
+  try {
+    
+    if (mongoose.connection.readyState === 0) {
+      await mongoose.connect(uri); 
+      await mongoose.connection.db.admin().command({ ping: 1 });
+      console.log('Pinged your deployment. You successfully connected to MongoDB!');
+    } else {
+      console.log('MongoDB connection already established');
     }
-}
+  } catch (error) {
+    console.error('Error connecting to MongoDB:', error);
+    mongoose.disconnect(); 
+    process.exit(1); 
+  }
+};
 
-module.exports = connectDB
+module.exports = connectDB;

@@ -1,143 +1,69 @@
+const express = require('express');
+const cors = require('cors');
 const mongoose = require('mongoose');
+const connectDB = require("./db");
+const { saveUser, saveSchools, findUserWithSchools, User } = require("./schoolmodel");  
 
-const schoolSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true },
-  graduateYear: [{ name: String, year: String }],
-  comments: [{ text: String, timestamp: { type: Date, default: Date.now } }],
-  images: [{ url: String, description: String }],
-  schools: [{ type: mongoose.Schema.Types.ObjectId, ref: 'School' }] 
-});
+const app = express();
+const PORT = process.env.PORT || 3025;
 
-const School = mongoose.model('School', schoolSchema);
+connectDB();
 
-const newSchool = new School({
-  name: 'Keih Bahri Secondary High School',
-  email: 'contact@keihbahri.edu',
-  graduateYear: [
-    { name: 'Absara', year: '1996' },
-    { name: 'Zebib', year: '1997' }
-  ],
-  comments: [
-    { text: 'Great memories!', timestamp: new Date('1996-06-01') },
-    { text: 'Amazing teachers!', timestamp: new Date('1997-06-01') }
-  ],
-  images: [
-    { url: 'http://example.com/image1.jpg', description: 'Main building of Keih Bahri' },
-    { url: 'http://example.com/image2.jpg', description: 'Graduation ceremony photo' }
-  ]
-});
+app.use(express.json());
+app.use(cors());
 
-const saveNewSchool = async () => {
+app.post('/user', async (req, res) => {
   try {
-    await newSchool.save();
-    console.log('New school saved successfully');
-  } catch (err) {
-    console.error('Error saving new school:', err);
-  }
-};
-
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true },
-  schools: [{ type: mongoose.Schema.Types.ObjectId, ref: 'School' }],
-  graduateYear: { type: String, required: true },
-  comment: { type: String, required: true }
-});
-
-const User = mongoose.model('User', userSchema);
-
-const saveSchools = async (schools) => {
-  try {
-    const savePromises = schools.map(schoolData => {
-      const school = new School(schoolData);
-      return school.save();
-    });
-    await Promise.all(savePromises);
-    console.log('Schools saved successfully');
-  } catch (err) {
-    console.error('Error saving schools:', err);
-  }
-};
-
-const saveUser = async () => {
-  try {
-    const schoolA = await School.findOne({ name: 'Keih Bahri Secondary High School' });
-    if (schoolA) {
-      const newUser = new User({
-        name: 'Absara',
-        email: 'absara_2021@yahoo.com',
-        graduateYear: '1996',
-        comment: 'Hello friends',
-        schools: [schoolA._id]
-      });
-
-      await newUser.save();
-      console.log('User and associated schools saved successfully');
-    } else {
-      console.log('Keih Bahri Secondary High School not found');
-    }
-  } catch (err) {
-    console.error('Error saving user:', err);
-  }
-};
-
-const findUserWithSchools = async () => {
-  try {
-    const user = await User.findOne({ name: 'Absara' }).populate('schools');
-    console.log(user);
-  } catch (err) {
-    console.error('Error finding user with schools:', err);
-  }
-};
-
-const schools = [
-  { name: "Walute School", email: "contact@walute.edu" },
-  { name: "Reynoldsburg School", email: "contact@reynoldsburg.edu" },
-  { name: "Pickerington School", email: "contact@pickerington.edu" },
-  { name: "Eastmoore School", email: "contact@eastmoore.edu" },
-  { name: "West School", email: "contact@west.edu" },
-  { name: "Jackington School", email: "contact@jackington.edu" }
-];
-
-saveSchools(schools);
-
-const schoolDetails = {
-  names: schools.map(school => school.name),
-  emails: schools.map(school => school.email)
-};
-
-console.log(schoolDetails);
-
-const fetch = require('node-fetch'); 
-
-const postUserData = async () => {
-  try {
-    const response = await fetch('http://localhost:3025/your-endpoint', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: 'Absara',
-        email: 'absara_2021@yahoo.com',
-        school: 'Keih Bahri Secondary High School',
-        graduateYear: '1996',
-        comment: 'Hello friends'
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
+    const { name, email, schoolName, graduateYear, comment } = req.body;
+    if (!name || !email || !schoolName || !graduateYear || !comment) {
+      return res.status(400).send({ message: 'All fields are required' });
     }
 
-    const data = await response.json();
-    console.log(data);
+    await saveUser({ name, email, schoolName, graduateYear, comment });
+    res.status(201).send({ message: 'User registered successfully' });
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error registering user:', error);
+    res.status(500).send({ message: 'Error registering user', error: error.message });
   }
-};
+});
 
-postUserData();
+app.get('/users', async (req, res) => {
+  try {
+    const users = await User.find().populate('schools');
+    res.status(200).send(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).send({ message: 'Error fetching users', error: error.message });
+  }
+});
 
-module.exports = { User, School, saveSchools, saveUser, findUserWithSchools, saveNewSchool };
+app.post('/save-schools', async (req, res) => {
+  const schools = req.body.schools;
+  try {
+    await saveSchools(schools);
+    res.status(201).send({ message: 'Schools saved successfully' });
+  } catch (error) {
+    console.error('Error saving schools:', error);
+    res.status(500).send({ message: 'Error saving schools', error: error.message });
+  }
+});
+
+app.get('/find-user/:name', async (req, res) => {
+  try {
+    const userName = req.params.name;
+    const user = await findUserWithSchools(userName);
+    if (!user) {
+      return res.status(404).send({ message: 'User not found' });
+    }
+    res.status(200).send(user);
+  } catch (error) {
+    console.error('Error finding user:', error);
+    res.status(500).send({ message: 'Error finding user', error: error.message });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+
+module.exports = { saveUser, saveSchools, findUserWithSchools, User }; 

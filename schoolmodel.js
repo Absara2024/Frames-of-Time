@@ -1,59 +1,116 @@
 const mongoose = require('mongoose');
 
+mongoose.connect('mongodb://localhost:3025/schoolsDB', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => {
+  console.log('Connected to MongoDB');
+}).catch(err => {
+  console.error('Failed to connect to MongoDB', err);
+});
+
 const schoolSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  email: { type: String, required: true },
-  graduateYear: [{ name: String, year: String }],
+  graduates: [{ name: String, year: String }],
   comments: [{ text: String, timestamp: { type: Date, default: Date.now } }],
-  images: [{ url: String, description: String }],
-  schools: [{ type: mongoose.Schema.Types.ObjectId, ref: 'School' }] 
+  images: [{ url: String, description: String }]
 });
 
 const School = mongoose.model('School', schoolSchema);
 
-const newSchool = new School({
-  name: 'Keih Bahri Secondary High School',
-  email: 'contact@keihbahri.edu',
-  graduateYear: [
-    { name: 'Absara', year: '1996' },
-    { name: 'Zebib', year: '1997' }
-  ],
-  comments: [
-    { text: 'Great memories!', timestamp: new Date('1996-06-01') },
-    { text: 'Amazing teachers!', timestamp: new Date('1997-06-01') }
-  ],
-  images: [
-    { url: 'http://example.com/image1.jpg', description: 'Main building of Keih Bahri' },
-    { url: 'http://example.com/image2.jpg', description: 'Graduation ceremony photo' }
-  ]
-});
-
-const saveNewSchool = async () => {
-  try {
-    await newSchool.save();
-    console.log('New school saved successfully');
-  } catch (err) {
-    console.error('Error saving new school:', err);
-  }
-};
-
+// User schema and model
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true },
-  schools: [{ type: mongoose.Schema.Types.ObjectId, ref: 'School' }],
+  school: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
   graduateYear: { type: String, required: true },
   comment: { type: String, required: true }
 });
 
 const User = mongoose.model('User', userSchema);
 
-// Function to save schools
-const saveSchools = async (schools) => {
+const saveNewSchool = async () => {
+  const newSchool = new School({
+    name: 'Keih Bahri Secondary High School',
+    graduates: [
+      { name: 'Absara', year: '1996' },
+      { name: 'Zebib', year: '1997' }
+    ],
+    comments: [
+      { text: 'Great memories!', timestamp: new Date('1996-06-01') },
+      { text: 'Amazing teachers!', timestamp: new Date('1997-06-01') }
+    ],
+    images: [
+      { url: 'http://example.com/image1.jpg', description: 'Main building of Keih Bahri' },
+      { url: 'http://example.com/image2.jpg', description: 'Graduation ceremony photo' }
+    ]
+  });
+
   try {
-    const savePromises = schools.map(schoolData => {
+    await newSchool.save();
+    console.log('School saved successfully');
+  } catch (err) {
+    console.error('Error saving school:', err);
+  }
+};
+
+const saveUser = async () => {
+  try {
+    const school = await School.findOne({ name: 'Keih Bahri Secondary High School' });
+
+    if (school) {
+      const newUser = new User({
+        name: 'Absara',
+        email: 'absara_2021@yahoo.com',
+        school: school._id,
+        graduateYear: '1996',
+        comment: 'Hello friends'
+      });
+
+      await newUser.save();
+      console.log('User and associated school saved successfully');
+    } else {
+      console.log('School not found!');
+    }
+  } catch (err) {
+    console.error('Error saving user:', err);
+  }
+};
+
+const findUserWithSchool = async () => {
+  try {
+    const user = await User.findOne({ name: 'Absara' }).populate('school');
+    console.log(user);
+  } catch (err) {
+    console.error('Error finding user with school:', err);
+  }
+};
+
+const saveSchools = async () => {
+  const schoolsData = [
+    {
+      name: "Walute School",
+      graduates: [{ name: "Zebib", year: "1996" }, { name: "Absara", year: "1997" }],
+      images: [{ url: "http://example.com/image1.jpg", description: "Building A" }]
+    },
+    {
+      name: "Reynoldsburg School",
+      graduates: [{ name: "John", year: "1995" }, { name: "Sam", year: "1998" }],
+      images: [{ url: "http://example.com/image2.jpg", description: "Classroom" }]
+    },
+    {
+      name: "Pickerington School",
+      graduates: [{ name: "Tom", year: "1994" }, { name: "Jill", year: "1996" }],
+      images: [{ url: "http://example.com/image3.jpg", description: "Graduation" }]
+    }
+  ];
+
+  try {
+    const savePromises = schoolsData.map(schoolData => {
       const school = new School(schoolData);
       return school.save();
     });
+
     await Promise.all(savePromises);
     console.log('Schools saved successfully');
   } catch (err) {
@@ -61,85 +118,13 @@ const saveSchools = async (schools) => {
   }
 };
 
-const saveUser = async () => {
-  try {
-    const schoolA = await School.findOne({ name: 'Keih Bahri Secondary High School' });
-    if (schoolA) {
-      const newUser = new User({
-        name: 'Absara',
-        email: 'absara_2021@yahoo.com',
-        graduateYear: '1996',
-        comment: 'Hello friends',
-        schools: [schoolA._id]
-      });
-
-      await newUser.save();
-      console.log('User and associated schools saved successfully');
-    } else {
-      console.log('Keih Bahri Secondary High School not found');
-    }
-  } catch (err) {
-    console.error('Error saving user:', err);
-  }
+const executeOperations = async () => {
+  await saveNewSchool();
+  await saveUser();
+  await findUserWithSchool();
+  await saveSchools();
 };
 
-const findUserWithSchools = async () => {
-  try {
-    const user = await User.findOne({ name: 'Absara' }).populate('schools');
-    console.log(user);
-  } catch (err) {
-    console.error('Error finding user with schools:', err);
-  }
-};
+executeOperations();
 
-const schools = [
-  { name: "Walute School", email: "contact@walute.edu" },
-  { name: "Reynoldsburg School", email: "contact@reynoldsburg.edu" },
-  { name: "Pickerington School", email: "contact@pickerington.edu" },
-  { name: "Eastmoore School", email: "contact@eastmoore.edu" },
-  { name: "West School", email: "contact@west.edu" },
-  { name: "Jackington School", email: "contact@jackington.edu" }
-];
-
-saveSchools(schools);
-
-const schoolDetails = {
-  names: schools.map(school => school.name),
-  emails: schools.map(school => school.email)
-};
-
-console.log(schoolDetails);
-
-const fetch = require('node-fetch'); 
-
-
-const postUserData = async () => {
-  try {
-    const response = await fetch('http://localhost:3025/your-endpoint', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: 'Absara',
-        email: 'absara_2021@yahoo.com',
-        school: 'Keih Bahri Secondary High School',
-        graduateYear: '1996',
-        comment: 'Hello friends'
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-
-    const data = await response.json();
-    console.log(data);
-  } catch (error) {
-    console.error('Error:', error);
-  }
-};
-
-postUserData();
-
-module.exports = { User, School, saveSchools, saveUser, findUserWithSchools, saveNewSchool };
+module.exports = { School, User };
