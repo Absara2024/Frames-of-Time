@@ -1,20 +1,19 @@
-require('dotenv').config();
+// db.js
+
 const mongoose = require('mongoose');
-const uri = process.env.MONGO_URI
+const dotenv = require('dotenv');
+dotenv.config(); // Load environment variables from .env file
 
-const clientOptions = { serverApi: { version: '1', strict: true, deprecationErrors: true } };
+const connectDB = async () => {
+  try {
+    // Connect to MongoDB using the connection string from .env
+    await mongoose.connect(process.env.MONGO_URI); 
+    console.log('MongoDB connected successfully');
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    process.exit(1); // Exit process with failure
+  }
+};
 
-async function connectDB() {
-    try {
-        
-        await mongoose.connect(uri, clientOptions);
-        await mongoose.connection.db.admin().command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
-    } catch (error) {
-        
-        console.log(error)
-        await mongoose.disconnect();
-    }
-}
+module.exports = connectDB;
 
-module.exports = connectDB
