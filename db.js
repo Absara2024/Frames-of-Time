@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
-const uri = process.env.MONGO_URI || 'mongodb://localhost:3025/schoolsDB';
+const uri = process.env.MONGO_URI || 'mongodb://localhost:127.0.0.1:3025/schoolsDB';
 
 const connectDB = async () => {
   try {
