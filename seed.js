@@ -75,4 +75,4 @@ const executeOperations = async () => {
 
 executeOperations();
 
-module.exports = { School, findUserWithSchool, User };
+module.exports = { School, NewSchool, findUserWithSchool, User };
