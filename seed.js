@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const School = require("./SchoolModel");
 const User = require("./User");
-const Comment = require("./Comment")
 
 const saveNewSchool = async () => {
   const newSchool = new School({
