@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const School = require("./SchoolModel");
 const User = require("./User");
+const Comment = require("./Comment")
 
 const saveNewSchool = async () => {
   const newSchool = new School({
@@ -76,4 +77,4 @@ const executeOperations = async () => {
 
 executeOperations();
 
-module.exports = { saveSchools, saveNewSchool, findUserWithSchool };
+module.exports = { School, saveNewSchool, findUserWithSchool };

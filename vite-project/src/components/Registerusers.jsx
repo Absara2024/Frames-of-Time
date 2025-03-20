@@ -20,7 +20,7 @@ function RegisterUser() {
       comment,
     };
 
-    axios.post('http://localhost:3012/user', newUser)
+    axios.post('http://localhost:3025/user', newUser)
       .then((response) => {
         alert('User registered successfully');
       })
