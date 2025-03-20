@@ -2,8 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const connectDB = require("./db");
-const { saveSchools, saveUser, findUserWithSchools } = require('./seed');
+const { saveSchools, saveUser, findUserWithSchools } = require('./utils');
 const User = require('./Models/userModel');
+const School = require("./Models/schoolModel")
+
 
 const app = express();
 const PORT = 3025;
@@ -35,7 +37,7 @@ app.post('/user', async (req, res) => {
 // Route to get all users
 app.get('/users', async (req, res) => {
   try {
-    const users = await User.find().populate('schools');
+    const users = await User.find()
     if (users.length === 0) {
       return res.status(404).send({ message: 'No users found' });
     }
@@ -50,6 +52,9 @@ app.get('/users', async (req, res) => {
   }
 });
 
+// other routes
+// add a comment to a user
+ 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
