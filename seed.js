@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const School = require("./SchoolModel");
 const User = require("./User");
+const Comment = require("./Comment")
 
 const saveNewSchool = async () => {
   const newSchool = new School({
@@ -29,51 +30,18 @@ const saveNewSchool = async () => {
 
 const findUserWithSchool = async () => {
   try {
-    const user = await User.findOne({ name: 'Absara' }).populate('school');
-    console.log('User:', user);
-  } catch (err) {
-    console.error('Error finding user with school:', err);
-  }
-};
-
-const saveSchools = async () => {
-  const schoolsData = [
-    {
-      name: "Walute School",
-      graduates: [{ name: "Zebib", year: "1996" }, { name: "Absara", year: "1997" }],
-      images: [{ url: "http://example.com/image1.jpg", description: "Building A" }]
-    },
-    {
-      name: "Reynoldsburg School",
-      graduates: [{ name: "John", year: "1995" }, { name: "Sam", year: "1998" }],
-      images: [{ url: "http://example.com/image2.jpg", description: "Classroom" }]
-    },
-    {
-      name: "Pickerington School",
-      graduates: [{ name: "Tom", year: "1994" }, { name: "Jill", year: "1996" }],
-      images: [{ url: "http://example.com/image3.jpg", description: "Graduation" }]
+    // Check if the school already exists before trying to create it
+    const existingSchool = await School.findOne({ email: newSchoolData.email });
+    if (existingSchool) {
+      console.log(`School with email ${newSchoolData.email} already exists.`);
+      return;
     }
-  ];
 
-  try {
-    const savePromises = schoolsData.map(schoolData => {
-      const school = new School(schoolData);
-      return school.save();
-    });
-
-    await Promise.all(savePromises);
-    console.log('Schools saved successfully');
+    const school = new School(newSchoolData);
+    await school.save();
+    console.log("New school saved!");
   } catch (err) {
-    console.error('Error saving schools:', err);
+    console.error("Error saving new school:", err);
   }
 };
-
-const executeOperations = async () => {
-  await saveNewSchool();
-  await findUserWithSchool();
-  await saveSchools();
-};
-
-executeOperations();
-
-module.exports = { School, saveNewSchool, findUserWithSchool };
+createNewSchool();
