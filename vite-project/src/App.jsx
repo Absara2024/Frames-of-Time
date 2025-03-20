@@ -21,7 +21,7 @@ function App() {
 }
 
 import React from 'react';
-import './Button.css'; // Assuming you exported a .css file from Figma
+import './Button.css'; 
 
 const Button = ({ label, onClick }) => {
   return (

@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const connectDB = require("./db");
+
 const { saveSchools, saveUser, findUserWithSchools } = require('./utils');
 const User = require('./Models/userModel');
 const School = require("./Models/schoolModel")
@@ -12,20 +13,16 @@ const PORT = 3025;
 
 connectDB(); // This connects to MongoDB
 
+
 app.use(express.json());
 app.use(cors());
 
 // Route to register a new user
-app.post('/user', async (req, res) => {
-  try {
-    const { name, email, schoolName, graduateYear, comment } = req.body;
 
-    if (!name || !email || !schoolName || !graduateYear || !comment) {
-      return res.status(400).send({ message: 'All fields are required' });
-    }
 
     // Save user data using the method from seed.js
     await saveUser({ name, email, schoolName, graduateYear, comment });
+
 
     res.status(201).send({ message: 'User registered successfully' });
   } catch (error) {
@@ -52,9 +49,22 @@ app.get('/users', async (req, res) => {
   }
 });
 
+
 // other routes
 // add a comment to a user
  
+=======
+app.post('/save-schools', async (req, res) => {
+  const schools = req.body.schools;
+  try {
+    await saveSchools(schools);
+    res.status(201).send({ message: 'Schools saved successfully' });
+  } catch (error) {
+    console.error('Error saving schools:', error);
+    res.status(500).send({ message: 'Error saving schools', error: error.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

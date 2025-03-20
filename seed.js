@@ -1,3 +1,4 @@
+
 const School = require("./Models/schoolModel");
 
 const newSchoolData = {
