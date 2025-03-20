@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const School = require("./SchoolModel");
+const User = require("./User");
 
 const saveNewSchool = async () => {
   const newSchool = new School({
@@ -28,7 +30,7 @@ const saveNewSchool = async () => {
 const findUserWithSchool = async () => {
   try {
     const user = await User.findOne({ name: 'Absara' }).populate('school');
-    console.log(user);
+    console.log('User:', user);
   } catch (err) {
     console.error('Error finding user with school:', err);
   }
@@ -68,11 +70,10 @@ const saveSchools = async () => {
 
 const executeOperations = async () => {
   await saveNewSchool();
-  await saveUser();
   await findUserWithSchool();
   await saveSchools();
 };
 
 executeOperations();
 
-module.exports = { School, NewSchool, findUserWithSchool, User };
+module.exports = { saveSchools, saveNewSchool, findUserWithSchool };

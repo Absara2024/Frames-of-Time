@@ -9,4 +9,4 @@ const schoolSchema = new mongoose.Schema({
 
 const School = mongoose.model('School', schoolSchema);
 
-module.exports = { School };
+module.exports = School;

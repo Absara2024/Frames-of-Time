@@ -2,7 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const connectDB = require("./db");
-const { saveUser, saveSchools, findUserWithSchools, User } = require("./schoolmodel");  
+const User = require("./User");
+const School = require("./SchoolModel");  
+const {saveSchools, saveNewSchool, findUserWithSchool } = require("./seed");
 
 const app = express();
 const PORT = process.env.PORT || 3025;
@@ -65,5 +67,3 @@ app.get('/find-user/:name', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
-
-module.exports = { saveUser, saveSchools, findUserWithSchools, User }; 
