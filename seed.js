@@ -1,8 +1,9 @@
+const mongoose = require('mongoose');
 const School = require("./Models/schoolModel");
 
+
 const newSchoolData = {
-  name: "Keih Bahri Secondary High School",
-  email: "contact@keihbahri.edu", // Added email field to the school model
+  schoolName: "Keih Bahri Secondary High School",
   graduates: [
     { name: "Absara", year: "1996" },
     { name: "Zebib", year: "1997" },
@@ -17,16 +18,17 @@ const newSchoolData = {
   ],
 };
 
-// Save the new school (for testing)
 const createNewSchool = async () => {
   try {
-    // Check if the school already exists before trying to create it
-    const existingSchool = await School.findOne({ email: newSchoolData.email });
+    // Check if the school already exists based on schoolName (not email)
+    const existingSchool = await School.findOne({ schoolName: newSchoolData.schoolName });
+    
     if (existingSchool) {
-      console.log(`School with email ${newSchoolData.email} already exists.`);
+      console.log(`School with name ${newSchoolData.schoolName} already exists.`);
       return;
     }
 
+    // If the school doesn't exist, create a new school
     const school = new School(newSchoolData);
     await school.save();
     console.log("New school saved!");
@@ -34,4 +36,5 @@ const createNewSchool = async () => {
     console.error("Error saving new school:", err);
   }
 };
+
 createNewSchool();

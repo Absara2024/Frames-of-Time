@@ -18,14 +18,14 @@ app.use(cors());
 // Route to register a new user
 app.post('/user', async (req, res) => {
   try {
-    const { name, email, schoolName, graduateYear, comment } = req.body;
+    const { name, email, schoolName, graduateYear, schools, comment } = req.body;
 
-    if (!name || !email || !schoolName || !graduateYear || !comment) {
+    if (!name || !schoolName || !graduateYear) {
       return res.status(400).send({ message: 'All fields are required' });
     }
 
     // Save user data using the method from seed.js
-    await saveUser({ name, email, schoolName, graduateYear, comment });
+    await saveUser({ name, email,schoolName, graduateYear,schools,comment });
 
     res.status(201).send({ message: 'User registered successfully' });
   } catch (error) {
